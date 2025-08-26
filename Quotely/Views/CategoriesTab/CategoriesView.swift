@@ -8,28 +8,62 @@
 import SwiftUI
 
 struct CategoriesView: View {
+    
+    @State private var apiCategories: [String] = []
+    @State private var displayedCategories: [String] = []
+    @State private var isLoading = false
+    
     var body: some View {
         NavigationStack {
             VStack {
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2 )) {
-                    ForEach(gridCategories, id: \.self) { row in
-                        ForEach(row, id:\.self) { cat in
-                            Text(cat.rawValue)
-                                .font(.title2)
-                                .frame(width: 180, height: 80)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 16)
-                                        .fill(Color.syntaxYellow)
-                                )
-                                .padding(8)
+                if isLoading {
+                    ProgressView()
+                        .padding()
+                } else {
+                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2)) {
+                        ForEach(Array(displayedCategories.enumerated()), id: \.offset) { index, displayCat in
+                            NavigationLink {
+                                CategoryDetailView(cat: apiCategories[index])
+                            } label: {
+                                CategorieItem(cat: displayCat)
+                            }
+                            .buttonStyle(.plain)
                         }
                     }
+                    .padding(.horizontal, 8)
                 }
                 Spacer()
             }
-            .padding(.horizontal, 8)
             .navigationTitle("Categories")
-        }        
+        }
+        .task {
+            await fetchCategories()
+        }
+    }
+    
+    private func getCategoriesFromAPI() async throws -> [String] {
+        let urlString = "https://si-classroom-batch-027.github.io/quotes/categories.json"
+        guard let url = URL(string: urlString) else {
+            throw HTTPError.invalidURL
+        }
+        
+        let (data, _) = try await URLSession.shared.data(from: url)
+        let result = try JSONDecoder().decode([String].self, from: data)
+        return result
+    }
+
+    private func fetchCategories() async {
+        guard !isLoading else { return }
+        isLoading = true
+        defer { isLoading = false }
+        
+        do {
+            let apiCats = try await getCategoriesFromAPI()
+            apiCategories = apiCats
+            displayedCategories = apiCats.map { categoryMapping[$0.lowercased()] ?? $0.capitalized }
+        } catch {
+            print("Error loading the categories: \(error)")
+        }
     }
 }
 
@@ -37,16 +71,3 @@ struct CategoriesView: View {
 //    CategoriesView()
 //}
 
-
-//enum Category: String, Codable {
-//    case motivation = "motivation"
-//    case life = "life"
-//    case love = "love"
-//    case wisdom = "wisdom"
-//    case success = "success"
-//    case happiness = "happiness"
-//    case courage = "courage"
-//    case friendship = "friendship"
-//    case education = "education"
-//    case future = "future"
-//}

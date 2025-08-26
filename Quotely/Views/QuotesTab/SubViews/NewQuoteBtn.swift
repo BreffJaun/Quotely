@@ -8,9 +8,12 @@
 import SwiftUI
 
 struct NewQuoteBtn: View {
+    
+    var action: () -> Void
+    
     var body: some View {
         Button {
-            // LATER
+            action()
         } label: {
             HStack(alignment: .center) {
                 Image(systemName: "arrow.clockwise")

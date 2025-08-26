@@ -9,7 +9,7 @@ import Foundation
 import SwiftData
 import UIKit
 
-struct Quote: Codable {
+struct Quote: Codable, Identifiable, Hashable {
     var id: String = UUID().uuidString
     var text: String
     var author: String

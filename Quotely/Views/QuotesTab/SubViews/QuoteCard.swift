@@ -8,19 +8,22 @@
 import SwiftUI
 
 struct QuoteCard: View {
+    
+    var fetchedQuote: Quote
+    
     var body: some View {
         VStack(alignment: .center, spacing: 24) {
             Image(systemName: "quote.opening")
                 .font(.system(size: 24))
                 .foregroundColor(.syntaxPurple)
                 .padding(.top)
-            Text("Believe in miracles, love, and happiness")
+            Text(fetchedQuote.text)
                 .padding(.horizontal, 16)
                 .frame(maxWidth: 250)
                 .font(.system(size: 24))
                 .fontWeight(.semibold)
                 .multilineTextAlignment(.center)
-            Text("Helen Keller")
+            Text(fetchedQuote.author)
                 .italic()
                 .padding(.bottom)
             

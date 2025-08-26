@@ -8,16 +8,16 @@
 import Foundation
 
 enum Category: String, Codable, CaseIterable {
-    case motivation = "Motivation"
-    case life = "Life"
-    case love = "Love"
-    case wisdom = "Wisdom"
-    case success = "Success"
-    case happiness = "Happiness"
-    case courage = "Courage"
-    case friendship = "Friendship"
-    case education = "Education"
-    case future = "Future"
+    case motivation = "motivation"
+    case life = "life"
+    case love = "love"
+    case wisdom = "wisdom"
+    case success = "success"
+    case happiness = "happiness"
+    case courage = "courage"
+    case friendship = "friendship"
+    case education = "education"
+    case future = "future"
 }
 
 let categories = Category.allCases
