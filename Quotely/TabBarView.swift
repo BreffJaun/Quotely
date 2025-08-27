@@ -17,7 +17,7 @@ struct TabBarView: View {
             }
             
             Tab("Authors", systemImage: "person.crop.artframe") {
-                AuthorsView()
+                AuthorListView()
             }
             
             Tab("Categories", systemImage: "square.grid.2x2.fill") {

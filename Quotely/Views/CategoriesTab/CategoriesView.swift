@@ -15,29 +15,41 @@ struct CategoriesView: View {
     
     var body: some View {
         NavigationStack {
-            VStack {
-                if isLoading {
-                    ProgressView()
-                        .padding()
-                } else {
-                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2)) {
-                        ForEach(Array(displayedCategories.enumerated()), id: \.offset) { index, displayCat in
-                            NavigationLink {
-                                CategoryDetailView(cat: apiCategories[index])
-                            } label: {
-                                CategorieItem(cat: displayCat)
+            ZStack {
+                LinearGradient(
+                    colors: [
+                        Color("syntaxPurple"),
+                        Color("syntaxGrey"),
+                        Color("syntaxYellow")
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .ignoresSafeArea()
+                VStack {
+                    if isLoading {
+                        ProgressView()
+                            .padding()
+                    } else {
+                        LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2)) {
+                            ForEach(Array(displayedCategories.enumerated()), id: \.offset) { index, displayCat in
+                                NavigationLink {
+                                    CategoryDetailView(cat: apiCategories[index])
+                                } label: {
+                                    CategorieItem(cat: displayCat)
+                                }
+                                .buttonStyle(.plain)
                             }
-                            .buttonStyle(.plain)
                         }
+                        .padding(.horizontal, 8)
                     }
-                    .padding(.horizontal, 8)
+                    Spacer()
                 }
-                Spacer()
+                .navigationTitle("Categories")
             }
-            .navigationTitle("Categories")
-        }
-        .task {
-            await fetchCategories()
+            .task {
+                await fetchCategories()
+            }
         }
     }
     
@@ -51,7 +63,7 @@ struct CategoriesView: View {
         let result = try JSONDecoder().decode([String].self, from: data)
         return result
     }
-
+    
     private func fetchCategories() async {
         guard !isLoading else { return }
         isLoading = true

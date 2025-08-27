@@ -1,18 +1,17 @@
 //
-//  CategoryDetailView.swift
+//  AuthorDetailView.swift
 //  Quotely
 //
-//  Created by Jeff Braun on 26.08.25.
+//  Created by Jeff Braun on 27.08.25.
 //
 
 import SwiftUI
 
-struct CategoryDetailView: View {
+struct AuthorDetailView: View {
     
-    var cat: String
-    
+    var author: Author
     @State private var isLoading = false
-    @State private var fetchedQuotes: [Quote] = []
+    @State private var authorQuotes: [Quote] = []
     
     var body: some View {
         VStack {
@@ -27,17 +26,9 @@ struct CategoryDetailView: View {
                     endPoint: .bottomTrailing
                 )
                 .ignoresSafeArea()
-                if isLoading {
-                    ProgressView()
-                        .scaleEffect(1.5)
-                        .padding()
-                } else if fetchedQuotes.isEmpty {
-                    Text("No quotes found...")
-                        .foregroundColor(.secondary)
-                        .padding()
-                } else {
+                if !authorQuotes.isEmpty {
                     List {
-                        ForEach(fetchedQuotes) { quote in
+                        ForEach(authorQuotes) { quote in
                             VStack(alignment: .leading, spacing: 8) {
                                 Text(quote.text)
                                 Text(quote.author)
@@ -49,19 +40,18 @@ struct CategoryDetailView: View {
                     }
                     .scrollContentBackground(.hidden)
                     .background(.clear)
+                } else {
+                    ProgressView()
                 }
             }
-            .navigationTitle(cat.capitalized)
-            .navigationBarTitleDisplayMode(.inline)
             .task {
-                await fetchQuotes()
+                await fetchAuthorQuotes()
             }
         }
     }
     
-    
-    private func getQuotesFromAPI() async throws -> [Quote] {
-        let urlString = "https://si-classroom-batch-027.github.io/quotes/quotes/\(cat).json"
+    private func getAuthorQuotesFromAPI() async throws -> [Quote] {
+        let urlString = "https://si-classroom-batch-027.github.io/quotes/quotes/\(author.slug).json"
         
         guard let url = URL(string: urlString) else {
             throw HTTPError.invalidURL
@@ -72,14 +62,14 @@ struct CategoryDetailView: View {
         return result
     }
     
-    private func fetchQuotes() async {
+    private func fetchAuthorQuotes() async {
         guard !isLoading else { return }
         isLoading = true
         defer { isLoading = false }
         
         do {
-            let result = try await getQuotesFromAPI()
-            fetchedQuotes = result
+            let tempAuthorQuotes = try await getAuthorQuotesFromAPI()
+            authorQuotes = tempAuthorQuotes
         } catch let error as HTTPError {
             print(error.rawValue)
         } catch {
@@ -89,5 +79,5 @@ struct CategoryDetailView: View {
 }
 
 //#Preview {
-//    CategoryDetailView()
+//    AuthorDetailView()
 //}
