@@ -11,26 +11,32 @@ struct QuotesView: View {
     
     @State private var isLoading = false
     @State var fetchedQuote: Quote?
+    @State private var quoteError: QuoteError?
     
     var body: some View {
-            NavigationStack {
-                ZStack {
-                    LinearGradient(
-                        colors: [
-                            Color("syntaxPurple"),
-                            Color("syntaxGrey"),
-                            Color("syntaxYellow")
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                    .ignoresSafeArea()
+        NavigationStack {
+            ZStack {
+                LinearGradient(
+                    colors: [
+                        Color("syntaxPurple"),
+                        Color("syntaxGrey"),
+                        Color("syntaxYellow")
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .ignoresSafeArea()
                 VStack(alignment: .center) {
                     Spacer()
-                    if let quote = fetchedQuote {
+                    if isLoading {
+                        ProgressView()
+                        Text("Quotes are loading...")
+                    } else if let error = quoteError {
+                        ErrorCardView(error: error)
+                    } else if let quote = fetchedQuote {
                         QuoteCard(fetchedQuote: quote)
                     } else {
-                        ProgressView()
+                        Text("No data loaded yet.")
                     }
                     Spacer()
                     NewQuoteBtn {
@@ -51,12 +57,17 @@ struct QuotesView: View {
         let urlString = "https://si-classroom-batch-027.github.io/quotes/quotes.json"
         
         guard let url = URL(string: urlString) else {
-            throw HTTPError.invalidURL
+            throw QuoteError(reason: "Invalid URL")
         }
         
         let (data, _) = try await URLSession.shared.data(from: url)
         let result = try JSONDecoder().decode([Quote].self, from: data)
-        return result.randomElement()
+        
+        guard let random = result.randomElement() else {
+            throw QuoteError(reason: "No posts found...")
+        }
+        
+        return random
     }
     
     private func fetchQuote() async {
@@ -65,15 +76,14 @@ struct QuotesView: View {
         defer { isLoading = false }
         
         do {
-            if let tempQuote = try await getQuoteFromAPI() {
-                fetchedQuote = tempQuote
-            } else {
-                print("No quotes found...")
-            }
-        } catch let error as HTTPError {
-            print(error.rawValue)
+            fetchedQuote = try await getQuoteFromAPI()
+            quoteError = nil
+        } catch let error as QuoteError {
+            fetchedQuote = nil
+            quoteError = error
         } catch {
-            print(error)
+            fetchedQuote = nil
+            quoteError = QuoteError(reason: error.localizedDescription)
         }
     }
 }

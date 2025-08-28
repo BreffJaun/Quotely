@@ -11,6 +11,7 @@ struct AuthorListView: View {
     
     @State private var isLoading = false
     @State var authors: [Author] = []
+    @State private var authorsError: AuthorsError?
     
     var body: some View {
         NavigationStack {
@@ -26,7 +27,19 @@ struct AuthorListView: View {
                 )
                 .ignoresSafeArea()
                 VStack {
-                    if !authors.isEmpty {
+                    if isLoading {
+                        ProgressView()
+                        Text("Authors are loading...")
+                    } else if let error = authorsError {
+                        VStack(spacing: 16) {
+                            ErrorCardView(error: error)
+                            FetchAgainBtn(
+                                labelText: "Fetch Authors again",
+                                action: { Task { await fetchAuthors() } },
+                                errorMessage: $authorsError
+                            )
+                        }                        
+                    } else if !authors.isEmpty {
                         List {
                             ForEach(authors) { author in
                                 NavigationLink {
@@ -40,7 +53,7 @@ struct AuthorListView: View {
                         .scrollContentBackground(.hidden)
                         .background(.clear)
                     } else {
-                        ProgressView()
+                        Text("No data loaded yet.")
                     }
                 }
                 .navigationTitle("Authors")
@@ -55,11 +68,16 @@ struct AuthorListView: View {
         let urlString = "https://si-classroom-batch-027.github.io/quotes/authors.json"
         
         guard let url = URL(string: urlString) else {
-            throw HTTPError.invalidURL
+            throw AuthorsError(reason: "Invalid URL")
         }
         
         let (data, _) = try await URLSession.shared.data(from: url)
         let result = try JSONDecoder().decode([Author].self, from: data)
+        
+        if result.isEmpty {
+            throw AuthorsError(reason: "No authors found...")
+        }
+        
         return result
     }
     
@@ -69,12 +87,14 @@ struct AuthorListView: View {
         defer { isLoading = false }
         
         do {
-            let tempAuthors = try await getAuthorsFromAPI()
-            authors = tempAuthors
-        } catch let error as HTTPError {
-            print(error.rawValue)
+            authors = try await getAuthorsFromAPI()
+            authorsError = nil
+        } catch let error as AuthorsError {
+            authors = []
+            authorsError = error
         } catch {
-            print(error)
+            authors = []
+            authorsError = AuthorsError(reason: error.localizedDescription)
         }
     }
 }

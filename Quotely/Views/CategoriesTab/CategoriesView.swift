@@ -12,6 +12,7 @@ struct CategoriesView: View {
     @State private var apiCategories: [String] = []
     @State private var displayedCategories: [String] = []
     @State private var isLoading = false
+    @State private var categoriesError: CategoriesError?
     
     var body: some View {
         NavigationStack {
@@ -29,8 +30,17 @@ struct CategoriesView: View {
                 VStack {
                     if isLoading {
                         ProgressView()
-                            .padding()
-                    } else {
+                        Text("Categories are loading...")
+                    } else if let error = categoriesError {
+                        VStack(spacing: 16) {
+                            ErrorCardView(error: error)
+                            FetchAgainBtn(
+                                labelText: "Fetch Categories again",
+                                action: { Task { await fetchCategories() } },
+                                errorMessage: $categoriesError
+                            )
+                        }
+                    } else if !categories.isEmpty {
                         LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2)) {
                             ForEach(Array(displayedCategories.enumerated()), id: \.offset) { index, displayCat in
                                 NavigationLink {
@@ -42,25 +52,33 @@ struct CategoriesView: View {
                             }
                         }
                         .padding(.horizontal, 8)
+                    } else {
+                        Text("No data loaded yet.")
                     }
-                    Spacer()
                 }
-                .navigationTitle("Categories")
+                Spacer()
             }
-            .task {
-                await fetchCategories()
-            }
+            .navigationTitle("Categories")
+        }
+        .task {
+            await fetchCategories()
         }
     }
+    
     
     private func getCategoriesFromAPI() async throws -> [String] {
         let urlString = "https://si-classroom-batch-027.github.io/quotes/categories.json"
         guard let url = URL(string: urlString) else {
-            throw HTTPError.invalidURL
+            throw CategoriesError(reason: "Invalid URL")
         }
         
         let (data, _) = try await URLSession.shared.data(from: url)
         let result = try JSONDecoder().decode([String].self, from: data)
+        
+        if result.isEmpty {
+            throw CategoriesError(reason: "No categories found...")
+        }
+        
         return result
     }
     
@@ -70,11 +88,17 @@ struct CategoriesView: View {
         defer { isLoading = false }
         
         do {
-            let apiCats = try await getCategoriesFromAPI()
-            apiCategories = apiCats
-            displayedCategories = apiCats.map { categoryMapping[$0.lowercased()] ?? $0.capitalized }
+            apiCategories = try await getCategoriesFromAPI()
+            displayedCategories = apiCategories.map { categoryMapping[$0.lowercased()] ?? $0.capitalized }
+            categoriesError = nil
+        } catch let error as CategoriesError {
+            apiCategories = []
+            displayedCategories = []
+            categoriesError = error
         } catch {
-            print("Error loading the categories: \(error)")
+            apiCategories = []
+            displayedCategories = []
+            categoriesError = CategoriesError(reason: error.localizedDescription)
         }
     }
 }

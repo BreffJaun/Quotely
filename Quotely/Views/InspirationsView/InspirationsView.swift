@@ -38,11 +38,20 @@ struct InspirationsView: View {
                         LazyVGrid(columns: columns, spacing: 8) {
                             ForEach(images) { image in
                                 VStack(alignment: .leading, spacing: 4) {
-                                    AsyncImage(url: URL(string: image.urls.small)) { phase in
+//                                    AsyncImage(url: URL(string: image.urls.small)) {
+                                    AsyncImage(url: URL(string: "https://example.com/doesnotexist.jpg")) {
+                                        
+                                        phase in
                                         switch phase {
                                         case .empty:
-                                            ProgressView()
-                                                .frame(maxWidth: .infinity, minHeight: 150)
+                                            
+                                            ZStack {
+                                                Color.gray.opacity(0.1)
+                                                ProgressView()
+                                            }
+                                            .frame(maxWidth: .infinity, minHeight: 150)
+                                            .cornerRadius(12)
+                                            
                                         case .success(let image):
                                             image
                                                 .resizable()
@@ -50,8 +59,18 @@ struct InspirationsView: View {
                                                 .frame(maxWidth: .infinity, maxHeight: 150)
                                                 .background(Color.gray.opacity(0.2))
                                                 .cornerRadius(12)
-                                        case .failure:
-                                            Color.gray.frame(height: 150)
+                                        case .failure(_): //eigentlich kommt error hier hin!!!
+                                            VStack {
+                                                Image(systemName: "exclamationmark.triangle.fill")
+                                                    .foregroundColor(.orange)
+                                                    .font(.system(size: 30))
+                                                Text("Bild konnte nicht geladen werden")
+                                                    .font(.caption)
+                                                    .foregroundColor(.secondary)
+                                            }
+                                            .frame(maxWidth: .infinity, minHeight: 150)
+                                            .background(Color.gray.opacity(0.2))
+                                            .cornerRadius(12)
                                         @unknown default:
                                             EmptyView()
                                         }

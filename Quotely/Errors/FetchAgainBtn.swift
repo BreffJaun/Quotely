@@ -1,23 +1,27 @@
 //
-//  NewQuoteBtn.swift
+//  FetchAgainBtn.swift
 //  Quotely
 //
-//  Created by Jeff Braun on 25.08.25.
+//  Created by Jeff Braun on 28.08.25.
 //
 
 import SwiftUI
 
-struct NewQuoteBtn: View {
+
+struct FetchAgainBtn<E: LocalizedError>: View {
     
+    var labelText: String
     var action: () -> Void
+    @Binding var errorMessage: E?
     
     var body: some View {
         Button {
+            errorMessage = nil
             action()
         } label: {
             HStack(alignment: .center) {
                 Image(systemName: "arrow.clockwise")
-                Text("New Quote")
+                Text(labelText)
             }
         }
         .padding(.vertical, 10)
@@ -35,5 +39,5 @@ struct NewQuoteBtn: View {
 }
 
 //#Preview {
-//    NewQuoteBtn()
+//    FetchAgainBtn()
 //}
