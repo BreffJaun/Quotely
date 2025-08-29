@@ -1,6 +1,6 @@
 # Quotely
 
-<img src="Quotely/Images/Quotely.png" width="75%">
+<img src="Quotely/Images/QuotelyImage.png" width="75%">
 
 **Quotely** is a SwiftUI app that fetches and displays quotes from various APIs in a user-friendly way. You can explore quotes by authors, categories, and inspirations, keeping your daily motivation at hand. ✨
 
