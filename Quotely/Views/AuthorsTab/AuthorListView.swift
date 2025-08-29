@@ -38,7 +38,7 @@ struct AuthorListView: View {
                                 action: { Task { await fetchAuthors() } },
                                 errorMessage: $authorsError
                             )
-                        }                        
+                        }
                     } else if !authors.isEmpty {
                         List {
                             ForEach(authors) { author in
@@ -52,6 +52,7 @@ struct AuthorListView: View {
                         }
                         .scrollContentBackground(.hidden)
                         .background(.clear)
+                        .shadow(color: .black.opacity(0.2), radius: 4, x: 2, y: 2)
                     } else {
                         Text("No data loaded yet.")
                     }
@@ -64,34 +65,20 @@ struct AuthorListView: View {
         }
     }
     
-    private func getAuthorsFromAPI() async throws -> [Author] {
-        let urlString = "https://si-classroom-batch-027.github.io/quotes/authors.json"
-        
-        guard let url = URL(string: urlString) else {
-            throw AuthorsError(reason: "Invalid URL")
-        }
-        
-        let (data, _) = try await URLSession.shared.data(from: url)
-        let result = try JSONDecoder().decode([Author].self, from: data)
-        
-        if result.isEmpty {
-            throw AuthorsError(reason: "No authors found...")
-        }
-        
-        return result
-    }
-    
     private func fetchAuthors() async {
         guard !isLoading else { return }
         isLoading = true
         defer { isLoading = false }
         
         do {
-            authors = try await getAuthorsFromAPI()
+            authors = try await NetworkService.sendData(
+                to: URLs.authors,
+                responseType: [Author].self
+            )
             authorsError = nil
-        } catch let error as AuthorsError {
+        } catch let error as HTTPError {
             authors = []
-            authorsError = error
+            authorsError = AuthorsError(reason: error.errorDescription ?? "Unknown HTTP error")
         } catch {
             authors = []
             authorsError = AuthorsError(reason: error.localizedDescription)

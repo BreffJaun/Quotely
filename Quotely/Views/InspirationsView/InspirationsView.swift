@@ -7,11 +7,11 @@
 
 import SwiftUI
 
-import SwiftUI
-
 struct InspirationsView: View {
+    
     @State private var images: [UnsplashPhoto] = []
     @State private var isLoading = false
+    @State private var inspirationError: QuoteError?
     
     private let columns = [
         GridItem(.flexible()),
@@ -38,8 +38,8 @@ struct InspirationsView: View {
                         LazyVGrid(columns: columns, spacing: 8) {
                             ForEach(images) { image in
                                 VStack(alignment: .leading, spacing: 4) {
-//                                    AsyncImage(url: URL(string: image.urls.small)) {
-                                    AsyncImage(url: URL(string: "https://example.com/doesnotexist.jpg")) {
+                                    AsyncImage(url: URL(string: image.urls.small)) {
+                                        //                                    AsyncImage(url: URL(string: "https://example.com/doesnotexist.jpg")) {
                                         
                                         phase in
                                         switch phase {
@@ -93,27 +93,24 @@ struct InspirationsView: View {
             }
         }
     }
-    
-    private func fetchMotivationPhotos() async throws -> [UnsplashPhoto] {
-        let urlString = "https://api.unsplash.com/search/photos?query=motivation&client_id=\(ApiKey.unsplash.rawValue)"
-        guard let url = URL(string: urlString) else {
-            throw URLError(.badURL)
-        }
         
-        let (data, _) = try await URLSession.shared.data(from: url)
-        let decoded = try JSONDecoder().decode(UnsplashResponse.self, from: data)
-        return decoded.results
-    }
-    
     private func loadPhotos() async {
         guard !isLoading else { return }
         isLoading = true
         defer { isLoading = false }
         
         do {
-            images = try await fetchMotivationPhotos()
+            images = try await NetworkService.sendData(
+                to: URLs.unsplah(apiKey: ApiKey.unsplash.rawValue),
+                responseType: UnsplashResponse.self
+            ).results
+            inspirationError = nil
+        } catch let error as HTTPError {
+            images = []
+            inspirationError = QuoteError(reason: error.errorDescription ?? "Unknown HTTP error")
         } catch {
-            print("Fehler beim Laden: \(error)")
+            images = []
+            inspirationError = QuoteError(reason: error.localizedDescription)
         }
     }
 }

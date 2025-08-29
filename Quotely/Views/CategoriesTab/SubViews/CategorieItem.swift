@@ -22,7 +22,6 @@ struct CategorieItem: View {
             )
             .padding(8)
             .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
-            
     }
 }
 

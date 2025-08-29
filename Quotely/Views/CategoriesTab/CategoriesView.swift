@@ -65,36 +65,26 @@ struct CategoriesView: View {
         }
     }
     
-    
-    private func getCategoriesFromAPI() async throws -> [String] {
-        let urlString = "https://si-classroom-batch-027.github.io/quotes/categories.json"
-        guard let url = URL(string: urlString) else {
-            throw CategoriesError(reason: "Invalid URL")
-        }
-        
-        let (data, _) = try await URLSession.shared.data(from: url)
-        let result = try JSONDecoder().decode([String].self, from: data)
-        
-        if result.isEmpty {
-            throw CategoriesError(reason: "No categories found...")
-        }
-        
-        return result
-    }
-    
     private func fetchCategories() async {
         guard !isLoading else { return }
         isLoading = true
         defer { isLoading = false }
         
         do {
-            apiCategories = try await getCategoriesFromAPI()
+
+            apiCategories = try await NetworkService.sendData(
+                to: URLs.categories,
+                responseType: [String].self
+            )
+            
+            // Mapping for View with German words
             displayedCategories = apiCategories.map { categoryMapping[$0.lowercased()] ?? $0.capitalized }
+            
             categoriesError = nil
-        } catch let error as CategoriesError {
+        } catch let error as HTTPError {
             apiCategories = []
             displayedCategories = []
-            categoriesError = error
+            categoriesError = CategoriesError(reason: error.errorDescription ?? "Unknown HTTP error")
         } catch {
             apiCategories = []
             displayedCategories = []

@@ -13,6 +13,7 @@ struct CategoryDetailView: View {
     
     @State private var isLoading = false
     @State private var fetchedQuotes: [Quote] = []
+    @State private var categoryError: QuoteError?
     
     var body: some View {
         VStack {
@@ -49,6 +50,7 @@ struct CategoryDetailView: View {
                     }
                     .scrollContentBackground(.hidden)
                     .background(.clear)
+                    .shadow(color: .black.opacity(0.2), radius: 4, x: 2, y: 2)
                 }
             }
             .navigationTitle(cat.capitalized)
@@ -59,31 +61,23 @@ struct CategoryDetailView: View {
         }
     }
     
-    
-    private func getQuotesFromAPI() async throws -> [Quote] {
-        let urlString = "https://si-classroom-batch-027.github.io/quotes/quotes/\(cat).json"
-        
-        guard let url = URL(string: urlString) else {
-            throw HTTPError.invalidURL
-        }
-        
-        let (data, _) = try await URLSession.shared.data(from: url)
-        let result = try JSONDecoder().decode([Quote].self, from: data)
-        return result
-    }
-    
     private func fetchQuotes() async {
         guard !isLoading else { return }
         isLoading = true
         defer { isLoading = false }
         
         do {
-            let result = try await getQuotesFromAPI()
-            fetchedQuotes = result
+            fetchedQuotes = try await NetworkService.sendData(
+                to: URLs.specificCat(cat: cat),
+                responseType: [Quote].self
+            )
+            categoryError = nil
         } catch let error as HTTPError {
-            print(error.rawValue)
+            fetchedQuotes = []
+            categoryError = QuoteError(reason: error.errorDescription ?? "Unknown HTTP error")
         } catch {
-            print(error)
+            fetchedQuotes = []
+            categoryError = QuoteError(reason: error.localizedDescription)
         }
     }
 }

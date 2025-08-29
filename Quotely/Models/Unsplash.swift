@@ -7,25 +7,25 @@
 
 import Foundation
 
-struct UnsplashResponse: Decodable {
+struct UnsplashResponse: Codable {
     let results: [UnsplashPhoto]
 }
 
-struct UnsplashPhoto: Decodable, Identifiable {
+struct UnsplashPhoto: Codable, Identifiable {
     let id: String
     let urls: Urls
     let user: User
-    
-    struct Urls: Decodable {
-        let small: String
-    }
-    
-    struct User: Decodable {
-        let name: String
-        let links: Links
-        
-        struct Links: Decodable {
-            let html: String
-        }
-    }
+}
+
+struct Urls: Codable {
+    let small: String
+}
+
+struct User: Codable {
+    let name: String
+    let links: Links
+}
+
+struct Links: Codable {
+    let html: String
 }

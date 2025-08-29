@@ -7,9 +7,25 @@
 
 import Foundation
 
-enum HTTPError: String, Error  {
-    case invalidURL = "Invalid URL"
-    case fetchFailed = "Loading data failed"
-    case invalidResponse = "Invalid Response"
+enum HTTPError: LocalizedError {
+    case invalidURL
+    case requestFailed(statusCode: Int)
+    case noData
+    case decodingError
+    case unknown(Error)
     
+    var errorDescription: String? {
+        switch self {
+        case .invalidURL:
+            return "The URL is invalid."
+        case .requestFailed(let statusCode):
+            return "The request failed with status code \(statusCode)."
+        case .noData:
+            return "No data received from the server."
+        case .decodingError:
+            return "Failed to decode the response."
+        case .unknown(let error):
+            return "Unknown error: \(error.localizedDescription)"
+        }
+    }
 }

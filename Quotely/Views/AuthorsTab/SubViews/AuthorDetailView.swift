@@ -12,6 +12,7 @@ struct AuthorDetailView: View {
     var author: Author
     @State private var isLoading = false
     @State private var authorQuotes: [Quote] = []
+    @State private var authorsError: AuthorsError?
     
     var body: some View {
         VStack {
@@ -26,7 +27,12 @@ struct AuthorDetailView: View {
                     endPoint: .bottomTrailing
                 )
                 .ignoresSafeArea()
-                if !authorQuotes.isEmpty {
+                if isLoading {
+                    ProgressView()
+                    Text("Quotes are loading...")
+                } else if let error = authorsError {
+                    ErrorCardView(error: error)
+                } else if !authorQuotes.isEmpty {
                     List {
                         ForEach(authorQuotes) { quote in
                             VStack(alignment: .leading, spacing: 8) {
@@ -40,8 +46,9 @@ struct AuthorDetailView: View {
                     }
                     .scrollContentBackground(.hidden)
                     .background(.clear)
+                    .shadow(color: .black.opacity(0.2), radius: 4, x: 2, y: 2)
                 } else {
-                    ProgressView()
+                    Text("No quotes found for this author.")
                 }
             }
             .task {
@@ -50,30 +57,25 @@ struct AuthorDetailView: View {
         }
     }
     
-    private func getAuthorQuotesFromAPI() async throws -> [Quote] {
-        let urlString = "https://si-classroom-batch-027.github.io/quotes/quotes/\(author.slug).json"
-        
-        guard let url = URL(string: urlString) else {
-            throw HTTPError.invalidURL
-        }
-        
-        let (data, _) = try await URLSession.shared.data(from: url)
-        let result = try JSONDecoder().decode([Quote].self, from: data)
-        return result
-    }
-    
     private func fetchAuthorQuotes() async {
         guard !isLoading else { return }
         isLoading = true
         defer { isLoading = false }
         
         do {
-            let tempAuthorQuotes = try await getAuthorQuotesFromAPI()
-            authorQuotes = tempAuthorQuotes
+            authorQuotes = try await NetworkService.sendData(
+                to: URLs.authorQuotes(slug: author.slug),
+                responseType: [Quote].self
+            )
+            authorsError = nil
         } catch let error as HTTPError {
-            print(error.rawValue)
+            authorQuotes = []
+            authorsError = AuthorsError(reason: error.errorDescription ?? "Unknown HTTP error")
+            print("HTTPError: \(error.errorDescription ?? "Unknown error")")
         } catch {
-            print(error)
+            authorQuotes = []
+            authorsError = AuthorsError(reason: error.localizedDescription)
+            print("Unexpected error: \(error.localizedDescription)")
         }
     }
 }
