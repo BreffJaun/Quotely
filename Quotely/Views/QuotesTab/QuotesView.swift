@@ -84,3 +84,4 @@ struct QuotesView: View {
 //#Preview {
 //    QuotesView()
 //}
+
