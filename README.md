@@ -1,5 +1,11 @@
 # Quotely
 
+![Swift](https://img.shields.io/badge/Swift-5-orange?logo=swift&logoColor=white)
+![Xcode](https://img.shields.io/badge/Xcode-16.4-blue?logo=xcode&logoColor=white)
+![iOS](https://img.shields.io/badge/iOS-18.0-black?logo=apple&logoColor=white)
+![License: MIT](https://img.shields.io/badge/License-MIT-green)
+![API](https://img.shields.io/badge/API-Unsplash%20%26%20Quotes-blueviolet)
+
 <img src="Quotely/Images/QuotelyImage.png" width="75%">
 
 **Quotely** is a SwiftUI app that fetches and displays quotes from various APIs in a user-friendly way. You can explore quotes by authors, categories, and inspirations, keeping your daily motivation at hand. ✨
