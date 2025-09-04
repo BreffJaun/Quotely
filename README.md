@@ -5,6 +5,7 @@
 ![iOS](https://img.shields.io/badge/iOS-18.0-black?logo=apple&logoColor=white)
 ![License: MIT](https://img.shields.io/badge/License-MIT-green)
 ![API](https://img.shields.io/badge/API-Unsplash%20%26%20Quotes-blueviolet)
+![REST API](https://img.shields.io/badge/Backend-REST%20API-lightgrey)
 
 <img src="Quotely/Images/QuotelyImage.png" width="75%">
 
